@@ -1,0 +1,49 @@
+class Bus:
+    def __init__(self, total_seats=20):
+        self.total_seats = total_seats
+        self.available_seats = total_seats
+        self.passengers = set()  # 현재 탑승 중인 교통카드 ID 저장
+
+    def board_passenger(self, card_id):
+        if card_id in self.passengers:
+            print(f"교통카드 [{card_id}]는 이미 탑승 중입니다.")
+            return
+
+        if self.available_seats > 0:
+            self.passengers.add(card_id)
+            self.available_seats -= 1
+            print(f"[{card_id}] 승차 완료. 잔여 좌석: {self.available_seats}석")
+        else:
+            print("좌석이 가득 찼습니다. 승차할 수 없습니다.")
+
+    def alight_passenger(self, card_id):
+        if card_id not in self.passengers:
+            print(f"교통카드 [{card_id}]는 탑승 중이 아닙니다.")
+            return
+
+        self.passengers.remove(card_id)
+        self.available_seats += 1
+        print(f"[{card_id}] 하차 완료. 잔여 좌석: {self.available_seats}석")
+
+    def get_available_seats(self):
+        return self.available_seats
+
+    def get_current_passengers(self):
+        return self.passengers
+
+# 테스트용 실행 예시
+if __name__ == "__main__":
+    bus = Bus()
+
+    bus.board_passenger("CARD001")
+    bus.board_passenger("CARD002")
+    bus.board_passenger("CARD001")  # 중복 탑승 시도
+
+    bus.alight_passenger("CARD002")
+    bus.alight_passenger("CARD003")  # 탑승하지 않은 카드 하차 시도
+
+    bus.board_passenger("CARD003")
+    bus.alight_passenger("CARD001")
+
+    print(f"현재 잔여 좌석: {bus.get_available_seats()}석")
+    print(f"현재 탑승 중인 승객: {bus.get_current_passengers()}")
