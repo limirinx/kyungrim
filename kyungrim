@@ -1,12 +1,15 @@
+from collections import deque
+
 class Bus:
     def __init__(self, total_seats=20):
         self.total_seats = total_seats
         self.available_seats = total_seats
         self.passengers = set()  # 현재 탑승 중인 교통카드 ID 저장
+        self.waiting_queue = deque()  # 대기열 (입석 대기 인원)
 
     def board_passenger(self, card_id):
-        if card_id in self.passengers:
-            print(f"교통카드 [{card_id}]는 이미 탑승 중입니다.")
+        if card_id in self.passengers or card_id in self.waiting_queue:
+            print(f"교통카드 [{card_id}]는 이미 탑승 또는 대기 중입니다.")
             return
 
         if self.available_seats > 0:
@@ -14,7 +17,8 @@ class Bus:
             self.available_seats -= 1
             print(f"[{card_id}] 승차 완료. 잔여 좌석: {self.available_seats}석")
         else:
-            print("좌석이 가득 찼습니다. 승차할 수 없습니다.")
+            self.waiting_queue.append(card_id)
+            print(f"[{card_id}] 좌석 없음 → 대기열에 추가됨 (대기 인원: {len(self.waiting_queue)}명)")
 
     def alight_passenger(self, card_id):
         if card_id not in self.passengers:
@@ -25,25 +29,37 @@ class Bus:
         self.available_seats += 1
         print(f"[{card_id}] 하차 완료. 잔여 좌석: {self.available_seats}석")
 
+        # 대기열 처리
+        if self.waiting_queue:
+            next_card = self.waiting_queue.popleft()
+            self.passengers.add(next_card)
+            self.available_seats -= 1
+            print(f"대기 중이던 [{next_card}] 자동 승차. 잔여 좌석: {self.available_seats}석")
+
     def get_available_seats(self):
         return self.available_seats
 
     def get_current_passengers(self):
         return self.passengers
 
+    def get_waiting_list(self):
+        return list(self.waiting_queue)
+
 # 테스트용 실행 예시
 if __name__ == "__main__":
     bus = Bus()
 
-    bus.board_passenger("CARD001")
-    bus.board_passenger("CARD002")
-    bus.board_passenger("CARD001")  # 중복 탑승 시도
+    # 좌석 꽉 채우기
+    for i in range(1, 22):  # 22명 시도 (20명 좌석 + 2명 대기)
+        card_id = f"CARD{i:03}"
+        bus.board_passenger(card_id)
 
-    bus.alight_passenger("CARD002")
-    bus.alight_passenger("CARD003")  # 탑승하지 않은 카드 하차 시도
+    print(f"\n대기 인원: {bus.get_waiting_list()}\n")
 
-    bus.board_passenger("CARD003")
-    bus.alight_passenger("CARD001")
+    # 하차 발생 → 대기자 자동 승차
+    bus.alight_passenger("CARD005")
+    bus.alight_passenger("CARD010")
 
-    print(f"현재 잔여 좌석: {bus.get_available_seats()}석")
+    print(f"\n현재 잔여 좌석: {bus.get_available_seats()}석")
     print(f"현재 탑승 중인 승객: {bus.get_current_passengers()}")
+    print(f"대기 인원: {bus.get_waiting_list()}")
